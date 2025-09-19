@@ -1,13 +1,17 @@
 #include <WiFi.h>
-#include <HTTPClient.h>
+#include <ThingSpeak.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 // ====== ThingSpeak Settings ======
-String apiKey = "YOUR_THINGSPEAK_WRITE_API_KEY";
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
-const char* server = "http://api.thingspeak.com/update";
+const char* apiKey = "OUZFLO152RA77S8J";
+int channelId=3081768;
+
+WiFiClient client;
+
+const char* ssid = "Mad";
+const char* password = "123madhu";
+
 
 // ====== IR Sensors & LCD ======
 #define IR1 32   // Inside sensor
@@ -34,6 +38,8 @@ void setup() {
   
   lcd.clear();
   lcd.print("WiFi Connected");
+  ThingSpeak.begin(client);
+
   delay(1000);
   updateLCD();
 }
@@ -70,16 +76,14 @@ void updateLCD() {
 
 void sendToThingSpeak() {
   if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    String url = server;
-    url += "?api_key=" + apiKey;
-    url += "&field1=" + String(count);
 
-    http.begin(url);
-    int httpCode = http.GET();
+    ThingSpeak.setField(1,String(count));
+    int httpCode=ThingSpeak.writeFields(channelId,apiKey);
+
     if (httpCode > 0) {
       Serial.println("Sent to ThingSpeak: " + String(count));
+    } else {
+      Serial.println("Data not Uploaded due to weak Internet");
     }
-    http.end();
   }
 }
